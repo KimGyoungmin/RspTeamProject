@@ -4,6 +4,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
 # 데이터베이스 생성코드입니다.
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -27,10 +28,8 @@ def delete_all_scores():
         # 모든 Score 레코드 삭제
         db.session.query(Score).delete()
         db.session.commit()
-        print("Score 데이터 삭제 완료!")
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        print(f"Score 데이터 삭제 중 오류 발생: {e}")
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -53,10 +52,8 @@ def home():
             return '결과는?'
         
     game_result = result()
-
-    # delete_all_scores() # 데이터 베이스 초기화가 필요할때 활성화하고 다시 실행하세요.
     
-    if game_result == '승리!':
+    if game_result == '승!':
         stats['win'] += 1
     elif game_result == '패배!':
         stats['lose'] += 1
@@ -69,14 +66,20 @@ def home():
         'rog': game_result,
         'stats': stats
     }
+    # 출력확인용(완성판에는 삭제예정)
+    print(context['rog'])
+    print(stats)
+    
     # DB 입력부분입니다.
-    print(context['rog']) # 출력확인용(완성판에는 삭제예정)
     score = Score(win = stats['win'], lose = stats['lose'], draw = stats['draw'])
     
     db.session.add(score)
     
     db.session.commit()
     # 여기까지 입력부분!
+    
+    delete_all_scores() # 데이터 베이스 초기화가 필요할때 활성화하고 다시 실행하세요.
+    
     return render_template('index.html', context=context)
 
 if __name__ == '__main__':
