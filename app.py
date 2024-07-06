@@ -70,13 +70,13 @@ def home():
         'stats': stats
     }
     # DB 입력부분입니다.
-    print(context['rog'])
+    print(context['rog']) # 출력확인용(완성판에는 삭제예정)
     score = Score(win = stats['win'], lose = stats['lose'], draw = stats['draw'])
     
     db.session.add(score)
     
     db.session.commit()
-    #여기까지 입력부분!
+    # 여기까지 입력부분!
     return render_template('index.html', context=context)
 
 if __name__ == '__main__':
