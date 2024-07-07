@@ -81,7 +81,7 @@ def home():
         score = Score(matches=1, win=0, lose=0, draw=0)
         db.session.add(score)
         
-    # Stats DB 입력(게임 결과 기록)
+    # Score DB 입력(게임 결과 기록)
     score.matches += 1
     if game_result == '승!':
         score.win += 1
@@ -89,9 +89,11 @@ def home():
         score.lose += 1
     elif game_result == '무승부!':
         score.draw += 1
+        
+    # Stats DB 입력(게임 전적 기록)
     stats = Stats(cpu = computer_choice, user = my_choice, result = game_result)
-    db.session.add(stats)
     
+    db.session.add(stats)
     db.session.commit()
     
     # delete_all_scores() # 데이터 베이스 초기화가 필요할때 활성화하고 게임을 1회 실행하세요.
