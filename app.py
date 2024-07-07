@@ -28,9 +28,6 @@ class Stats(db.Model):
     cpu = db.Column(db.String, nullable=False)
     user = db.Column(db.String, nullable=False)
     result = db.Column(db.String, nullable=False)
-    
-with app.app_context():
-    db.create_all()
 
 # 데이터베이스 삭제 함수(전적초기화 용도)
 def delete_all_scores():
@@ -41,6 +38,9 @@ def delete_all_scores():
         db.session.commit()
     except Exception:
         db.session.rollback()
+        
+with app.app_context():
+    db.create_all()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -63,6 +63,9 @@ def home():
             return '결과는?'
         
     game_result = result()
+    
+    if my_choice is None: # 프로그램을 실행할때마다 자동으로 1회 실행되는 문제가 있어서 추가한 디버깅용 코드
+        my_choice = '선택하지 않음'
 
     context = {
         'computer_pick': computer_choice,
@@ -79,6 +82,7 @@ def home():
         db.session.add(score)
         
     # Stats DB 입력(게임 결과 기록)
+    score.matches += 1
     if game_result == '승!':
         score.win += 1
     elif game_result == '패배!':
