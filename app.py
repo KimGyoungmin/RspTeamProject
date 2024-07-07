@@ -9,11 +9,11 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] =\
-        'sqlite:///' + os.path.join(basedir, 'database.db')
+        'sqlite:///' + os.path.join(basedir, 'Score.db')
+app.config['SQLALCHEMY_BINDS'] = {
+'second_db': 'sqlite:///' + os.path.join(basedir, 'stats.db')}
 
 db = SQLAlchemy(app)
-
-stats = {'win':0, 'lose':0, 'draw':0} # 통계 저장용 딕셔너리
 
 # 데이터베이스 생성
 class Score(db.Model):
@@ -22,11 +22,22 @@ class Score(db.Model):
     lose = db.Column(db.Integer, nullable=False) # 패배 저장용
     draw = db.Column(db.Integer, nullable=False) #무승부 저장용
 
+class Stats(db.Model):
+    __bind_key__ = 'second_db'
+    matches = db.Column(db.Integer, primary_key=True)
+    cpu = db.Column(db.String, nullable=False)
+    user = db.Column(db.String, nullable=False)
+    result = db.Column(db.String, nullable=False)
+    
+with app.app_context():
+    db.create_all()
+
 # 데이터베이스 삭제 함수(전적초기화 용도)
 def delete_all_scores():
     try:
         # 모든 Score 레코드 삭제
         db.session.query(Score).delete()
+        db.session.query(Stats).delete()
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -52,33 +63,35 @@ def home():
             return '결과는?'
         
     game_result = result()
-    
-    if game_result == '승!':
-        stats['win'] += 1
-    elif game_result == '패배!':
-        stats['lose'] += 1
-    elif game_result == '무승부!':
-        stats['draw'] += 1
 
     context = {
         'computer_pick': computer_choice,
         'your_choice': my_choice,
-        'rog': game_result,
-        'stats': stats
+        'rog': game_result
     }
     # 출력확인용(완성판에는 삭제예정)
     print(context['rog'])
-    print(stats)
     
-    # DB 입력부분입니다.
-    score = Score(win = stats['win'], lose = stats['lose'], draw = stats['draw'])
-    
-    db.session.add(score)
+    # Score DB 입력(총 전적 기록)
+    score = Score.query.first()
+    if score is None:
+        score = Score(matches=1, win=0, lose=0, draw=0)
+        db.session.add(score)
+        
+    # Stats DB 입력(게임 결과 기록)
+    if game_result == '승!':
+        score.win += 1
+    elif game_result == '패배!':
+        score.lose += 1
+    elif game_result == '무승부!':
+        score.draw += 1
+    stats = Stats(cpu = computer_choice, user = my_choice, result = game_result)
+    db.session.add(stats)
     
     db.session.commit()
-    # 여기까지 입력부분!
     
     # delete_all_scores() # 데이터 베이스 초기화가 필요할때 활성화하고 게임을 1회 실행하세요.
+    # ++ html의 버튼으로 해당 함수를 실행할 수 있으면 좋을것같습니다.
     
     return render_template('index.html', context=context)
 
