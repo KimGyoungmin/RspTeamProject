@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <h1 class="text-center">죽음의 가위바위보</h1>
         <div class="d-flex justify-content-center">
-            <form action="/" method="post" class="text-center me-2">
+            <form action="/" method="get" class="text-center me-2">
                 <div class="mb-3">
                     <select class="form-select form-select-sm mx-auto" style="max-width: 200px;" aria-label="Small select example" name="query" required>
                         <option value="" selected disabled>가위바위보 선택</option>
@@ -21,7 +21,7 @@
                 </div>
                 <input class="btn btn-primary mt-3" type="submit" value="선택완료">
             </form>
-            <form action="/" method="post" class="text-center ms-2">
+            <form action="/" method="get" class="text-center ms-2">
                 <input type="hidden" name="reset" value="true">
                 <input class="btn btn-danger mt-3" type="submit" value="기록 초기화">
             </form>
